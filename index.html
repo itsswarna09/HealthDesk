@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Health Desk is a smart digital health platform for doctor appointments, medical records, blood donor requests, and emergency health support."
+    />
+    <title>Health Desk | Smart Digital Health Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="Health Desk home">
+        <span class="brand-mark">HD</span>
+        <span>
+          <strong>Health Desk</strong>
+          <small>Digital care platform</small>
+        </span>
+      </a>
+
+      <button class="menu-button" id="menuButton" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+
+      <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+        <a href="#services">Services</a>
+        <a href="#appointments">Appointments</a>
+        <a href="#records">Records</a>
+        <a href="#blood">Blood Donors</a>
+        <a href="#emergency">Emergency</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <button class="primary-button header-cta" data-open-booking>
+        <i data-lucide="calendar-check"></i>
+        Book Now
+      </button>
+    </header>
+
+    <main>
+      <section class="hero-section" id="home">
+        <div class="hero-copy">
+          <p class="eyebrow">One platform for everyday and urgent care</p>
+          <h1>Manage your health journey from appointment to emergency support.</h1>
+          <p class="hero-text">
+            Health Desk connects patients with trusted doctors, secure medical records, verified blood donors, and fast
+            emergency assistance in one organized digital experience.
+          </p>
+          <div class="hero-actions">
+            <button class="primary-button" data-open-booking>
+              <i data-lucide="calendar-plus"></i>
+              Book Appointment
+            </button>
+            <a class="secondary-button" href="#emergency">
+              <i data-lucide="siren"></i>
+              Emergency Help
+            </a>
+          </div>
+          <div class="trust-row" aria-label="Platform highlights">
+            <span><strong>42+</strong> doctors</span>
+            <span><strong>24/7</strong> support</span>
+            <span><strong>900+</strong> donors</span>
+          </div>
+        </div>
+
+        <div class="hero-media" aria-label="Health Desk care summary">
+          <img
+            src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=1200&q=80"
+            alt="Doctor reviewing healthcare information"
+          />
+          <div class="floating-card appointment-card">
+            <i data-lucide="stethoscope"></i>
+            <div>
+              <span>Next available</span>
+              <strong>Cardiology at 4:30 PM</strong>
+            </div>
+          </div>
+          <div class="floating-card emergency-card-mini">
+            <i data-lucide="ambulance"></i>
+            <div>
+              <span>Emergency desk</span>
+              <strong>Average response 3 min</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="logo-strip" aria-label="Trusted healthcare network">
+        <span>City Heart Hospital</span>
+        <span>Metro Care Labs</span>
+        <span>LifeLine Ambulance</span>
+        <span>CarePlus Clinics</span>
+      </section>
+
+      <section class="section" id="services">
+        <div class="section-heading">
+          <p class="eyebrow">Core services</p>
+          <h2>Everything patients need before, during, and after care.</h2>
+        </div>
+
+        <div class="service-grid">
+          <article class="service-card">
+            <i data-lucide="calendar-days"></i>
+            <h3>Doctor Appointments</h3>
+            <p>Search specialists, compare availability, and book clinic, video, or home visits.</p>
+          </article>
+          <article class="service-card">
+            <i data-lucide="folder-heart"></i>
+            <h3>Medical Records</h3>
+            <p>Store prescriptions, lab reports, scans, insurance files, and emergency health details.</p>
+          </article>
+          <article class="service-card">
+            <i data-lucide="droplets"></i>
+            <h3>Blood Donor Requests</h3>
+            <p>Broadcast urgent requests to nearby verified donors with blood group and hospital details.</p>
+          </article>
+          <article class="service-card">
+            <i data-lucide="siren"></i>
+            <h3>Emergency Support</h3>
+            <p>Reach ambulance partners, emergency doctors, hospitals, and trusted contacts quickly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section feature-band" id="appointments">
+        <div class="feature-copy">
+          <p class="eyebrow">Smart appointments</p>
+          <h2>Find the right doctor without calling multiple clinics.</h2>
+          <p>
+            Filter by specialty, check available slots, choose a visit type, and confirm appointments from a single
+            screen.
+          </p>
+          <button class="primary-button" data-open-booking>
+            <i data-lucide="calendar-check"></i>
+            Start Booking
+          </button>
+        </div>
+
+        <div class="doctor-board">
+          <div class="board-toolbar">
+            <strong>Available Specialists</strong>
+            <span class="status-pill">Live slots</span>
+          </div>
+          <div class="filters" role="group" aria-label="Doctor filters">
+            <button class="active" data-filter="All">All</button>
+            <button data-filter="Cardiology">Cardiology</button>
+            <button data-filter="Dermatology">Dermatology</button>
+            <button data-filter="Pediatrics">Pediatrics</button>
+            <button data-filter="Orthopedics">Orthopedics</button>
+          </div>
+          <div class="doctor-list" id="doctorList"></div>
+        </div>
+      </section>
+
+      <section class="section split-section" id="records">
+        <div>
+          <p class="eyebrow">Secure records</p>
+          <h2>Your medical history stays organized and ready to share.</h2>
+          <p>
+            Keep health documents in one place and share time-limited access with doctors or emergency teams when care
+            decisions need speed.
+          </p>
+          <div class="check-list">
+            <span><i data-lucide="shield-check"></i> Consent-based sharing</span>
+            <span><i data-lucide="file-check-2"></i> Categorized health files</span>
+            <span><i data-lucide="badge-info"></i> Emergency profile summary</span>
+          </div>
+        </div>
+
+        <div class="records-panel">
+          <div class="panel-header">
+            <strong>Health Vault</strong>
+            <button class="text-button" id="uploadRecordButton">Upload</button>
+          </div>
+          <div class="record-list" id="recordList"></div>
+        </div>
+      </section>
+
+      <section class="section blood-section" id="blood">
+        <div class="section-heading">
+          <p class="eyebrow">Blood donor network</p>
+          <h2>Request compatible donors near the hospital.</h2>
+        </div>
+
+        <div class="blood-layout">
+          <form class="request-form" id="donorForm">
+            <h3>Create donor request</h3>
+            <label>
+              Patient name
+              <input name="patient" required placeholder="Enter patient name" />
+            </label>
+            <label>
+              Blood group
+              <select name="group" required>
+                <option>O+</option>
+                <option>O-</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+              </select>
+            </label>
+            <label>
+              Hospital or area
+              <input name="hospital" required placeholder="City Heart Hospital" />
+            </label>
+            <button class="primary-button" type="submit">
+              <i data-lucide="send"></i>
+              Send Request
+            </button>
+          </form>
+
+          <div class="donor-panel">
+            <div class="panel-header">
+              <strong>Nearby verified donors</strong>
+              <span class="status-pill">Online</span>
+            </div>
+            <div class="donor-list" id="donorList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section emergency-section" id="emergency">
+        <div class="emergency-copy">
+          <p class="eyebrow">Emergency care</p>
+          <h2>Critical support designed for fast action.</h2>
+          <p>
+            Share your emergency profile, alert family contacts, request an ambulance, or connect with an emergency
+            doctor from one clear interface.
+          </p>
+        </div>
+
+        <div class="emergency-actions">
+          <button class="emergency-action urgent" data-toast="Ambulance dispatch desk alerted.">
+            <i data-lucide="ambulance"></i>
+            <strong>Ambulance</strong>
+            <span>Nearest partner in 6 min</span>
+          </button>
+          <button class="emergency-action" data-toast="Emergency doctor callback requested.">
+            <i data-lucide="phone-forwarded"></i>
+            <strong>Doctor SOS</strong>
+            <span>Priority callback</span>
+          </button>
+          <button class="emergency-action" data-toast="Emergency health profile link generated.">
+            <i data-lucide="share-2"></i>
+            <strong>Share Profile</strong>
+            <span>Blood group and allergies</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section process-section">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2>Simple steps for patients and care teams.</h2>
+        </div>
+        <div class="process-grid">
+          <article>
+            <span>01</span>
+            <h3>Create your health profile</h3>
+            <p>Add contact details, blood group, allergies, insurance, and preferred hospitals.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Book or request care</h3>
+            <p>Schedule appointments, upload reports, or send urgent donor and emergency requests.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Track everything in one place</h3>
+            <p>Keep follow-ups, documents, donor responses, and emergency contacts organized.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section testimonials">
+        <div class="section-heading">
+          <p class="eyebrow">Patient experience</p>
+          <h2>Built for clarity when healthcare feels complicated.</h2>
+        </div>
+        <div class="testimonial-grid">
+          <article>
+            <p>"I booked a same-day cardiology appointment and shared my reports before reaching the hospital."</p>
+            <strong>Priya N.</strong>
+          </article>
+          <article>
+            <p>"The blood donor request flow saved our family hours during an emergency admission."</p>
+            <strong>Arjun M.</strong>
+          </article>
+          <article>
+            <p>"All my prescriptions and lab reports are finally in one place, ready for every consultation."</p>
+            <strong>Neha S.</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="section faq-section">
+        <div class="section-heading">
+          <p class="eyebrow">Questions</p>
+          <h2>Frequently asked questions.</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>Can users book real appointments from this website?</summary>
+            <p>This frontend is ready for integration with a backend appointment system, payment flow, and clinic APIs.</p>
+          </details>
+          <details>
+            <summary>Can medical records be uploaded securely?</summary>
+            <p>The interface includes the upload workflow. In production, it should connect to encrypted storage and user authentication.</p>
+          </details>
+          <details>
+            <summary>How does emergency support work?</summary>
+            <p>The emergency actions are designed to connect with ambulance partners, emergency doctors, and trusted contacts.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="contact-section" id="contact">
+        <div>
+          <p class="eyebrow">Start with Health Desk</p>
+          <h2>Bring appointments, records, donors, and emergency support into one website.</h2>
+        </div>
+        <div class="contact-actions">
+          <button class="primary-button" data-open-booking>
+            <i data-lucide="calendar-check"></i>
+            Book Appointment
+          </button>
+          <a class="secondary-button" href="mailto:support@healthdesk.example">
+            <i data-lucide="mail"></i>
+            Contact Team
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand footer-brand">
+        <span class="brand-mark">HD</span>
+        <span>
+          <strong>Health Desk</strong>
+          <small>Digital care platform</small>
+        </span>
+      </div>
+      <p>Smart healthcare access for appointments, records, blood donors, and emergencies.</p>
+    </footer>
+
+    <dialog id="bookingDialog">
+      <form method="dialog" class="modal">
+        <button class="icon-button close-button" value="cancel" aria-label="Close booking dialog">
+          <i data-lucide="x"></i>
+        </button>
+        <p class="eyebrow">Appointment booking</p>
+        <h2>Book your visit</h2>
+        <label>
+          Full name
+          <input id="bookingName" required placeholder="Enter patient name" />
+        </label>
+        <label>
+          Specialty
+          <select id="bookingSpecialty">
+            <option>Cardiology</option>
+            <option>Dermatology</option>
+            <option>Pediatrics</option>
+            <option>Orthopedics</option>
+          </select>
+        </label>
+        <label>
+          Preferred date
+          <input type="date" id="bookingDate" />
+        </label>
+        <label>
+          Visit type
+          <select id="bookingType">
+            <option>Clinic visit</option>
+            <option>Video consult</option>
+            <option>Home visit</option>
+          </select>
+        </label>
+        <button class="primary-button" id="confirmBooking" value="default">
+          <i data-lucide="calendar-check"></i>
+          Confirm Booking
+        </button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
