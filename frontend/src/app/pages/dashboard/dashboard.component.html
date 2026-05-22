@@ -1,0 +1,143 @@
+<app-navbar />
+
+<div class="page-container">
+
+  @if (user) {
+    <div class="page-header">
+      <div>
+        <h1>Good day, {{ user.first_name }} 👋</h1>
+        <p>Here's your HealthDesk overview</p>
+      </div>
+      <span class="role-badge" [class]="getRoleBadgeClass()">{{ user.role }}</span>
+    </div>
+
+    <div class="cards-grid">
+
+      <div class="info-card">
+        <div class="card-icon">👤</div>
+        <div class="card-body">
+          <h3>Personal Info</h3>
+          <div class="info-row"><span>Full name</span><strong>{{ user.full_name }}</strong></div>
+          <div class="info-row"><span>Email</span><strong>{{ user.email }}</strong></div>
+          <div class="info-row"><span>Phone</span><strong>{{ user.phone || '—' }}</strong></div>
+          <div class="info-row"><span>DOB</span><strong>{{ user.date_of_birth || '—' }}</strong></div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="card-icon">🩸</div>
+        <div class="card-body">
+          <h3>Medical Info</h3>
+          <div class="info-row"><span>Blood Group</span><strong class="blood-group">{{ user.blood_group }}</strong></div>
+          <div class="info-row"><span>Verified</span>
+            <strong [class]="user.is_verified ? 'text-green' : 'text-yellow'">
+              {{ user.is_verified ? '✓ Verified' : '⏳ Pending' }}
+            </strong>
+          </div>
+          <div class="info-row"><span>Last login</span><strong>{{ user.last_login ? (user.last_login | date:'medium') : 'First time!' }}</strong></div>
+          <div class="info-row"><span>Member since</span><strong>{{ user.created_at | date:'mediumDate' }}</strong></div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="card-icon">🚨</div>
+        <div class="card-body">
+          <h3>Emergency Contact</h3>
+          @if (user.emergency_contact.name) {
+            <div class="info-row"><span>Name</span><strong>{{ user.emergency_contact.name }}</strong></div>
+            <div class="info-row"><span>Phone</span><strong>{{ user.emergency_contact.phone || '—' }}</strong></div>
+          } @else {
+            <p class="empty-state">No emergency contact set.<br><a routerLink="/profile">Add one in Profile</a></p>
+          }
+        </div>
+      </div>
+
+      <div class="info-card appointments-card">
+        <div class="card-icon">📅</div>
+        <div class="card-body">
+          <div class="card-header-row">
+            <h3>{{ user.role === 'DOCTOR' ? 'Patient Requests' : 'Appointments' }}</h3>
+            <a routerLink="/appointments" class="view-all-link">View All →</a>
+          </div>
+          @if (loadingAppointments) {
+            <p class="empty-state">Loading appointments…</p>
+          } @else if (appointments.length === 0) {
+            <p class="empty-state">
+              @if (user.role === 'PATIENT') {
+                No appointments yet. <a routerLink="/doctors">Find a doctor</a>
+              } @else {
+                No patient requests yet.
+              }
+            </p>
+          } @else {
+            <div class="appointment-list">
+              @for (app of appointments.slice(0, 3); track app.id) {
+                <div class="appointment-item">
+                  <div class="app-left">
+                    <div class="app-avatar">
+                      @if (user.role === 'PATIENT') {
+                        {{ app.doctor?.user?.first_name?.charAt(0) }}{{ app.doctor?.user?.last_name?.charAt(0) }}
+                      } @else {
+                        {{ app.patient?.first_name?.charAt(0) }}{{ app.patient?.last_name?.charAt(0) }}
+                      }
+                    </div>
+                    <div class="app-details">
+                      @if (user.role === 'PATIENT') {
+                        <strong>Dr. {{ app.doctor?.user?.full_name || 'Unknown' }}</strong>
+                        <span>{{ app.doctor?.specialization }}</span>
+                      } @else {
+                        <strong>{{ app.patient?.full_name || 'Unknown' }}</strong>
+                        <span>{{ app.reason_for_visit || 'No reason' }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="app-right">
+                    <div class="app-date">{{ app.date | date:'MMM d' }} · {{ app.time_slot }}</div>
+                    <span class="status-badge status-{{ app.status | lowercase }}">{{ app.status }}</span>
+                  </div>
+                </div>
+              }
+              @if (appointments.length > 3) {
+                <a routerLink="/appointments" class="see-more-link">+{{ appointments.length - 3 }} more → View All</a>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2 class="qa-title">Quick Actions</h2>
+      <div class="qa-grid">
+        @if (user.role === 'PATIENT') {
+          <a routerLink="/doctors" class="qa-card">
+            <span class="qa-icon">🩺</span>
+            <span class="qa-label">Find a Doctor</span>
+          </a>
+          <a routerLink="/appointments" class="qa-card">
+            <span class="qa-icon">📅</span>
+            <span class="qa-label">My Appointments</span>
+          </a>
+        } @else {
+          <a routerLink="/appointments" class="qa-card">
+            <span class="qa-icon">📋</span>
+            <span class="qa-label">Patient Requests</span>
+          </a>
+        }
+        <a routerLink="/profile" class="qa-card">
+          <span class="qa-icon">⚙️</span>
+          <span class="qa-label">Edit Profile</span>
+        </a>
+      </div>
+    </div>
+
+  } @else {
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p>Loading your dashboard…</p>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,72 @@
+<app-navbar />
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Find a Doctor 🩺</h1>
+      <p>Browse our network of verified healthcare professionals.</p>
+    </div>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="filter-bar card">
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search by doctor name or condition..." [(ngModel)]="searchTerm" class="search-input">
+    </div>
+    
+    <div class="filter-select-wrapper">
+      <select [(ngModel)]="selectedSpecialization" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Specializations</option>
+        @for (spec of specializations; track spec) {
+          <option [value]="spec">{{ spec }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Results Grid -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p>Finding doctors near you…</p>
+    </div>
+  } @else if (filteredDoctors.length === 0) {
+    <div class="empty-state">
+      <div class="card-icon">🏥</div>
+      <h3>No doctors found</h3>
+      <p>Try adjusting your search filters or browse all doctors.</p>
+      @if (errorMessage) {
+        <div style="color: red; margin-top: 10px; font-weight: bold; font-family: monospace;">
+          Error Details: {{ errorMessage }}
+        </div>
+      }
+      <button class="btn-secondary mt-3" (click)="searchTerm=''; selectedSpecialization=''; onFilterChange()">Clear Filters</button>
+    </div>
+  } @else {
+    <div class="doctor-grid">
+      @for (doc of filteredDoctors; track doc.id) {
+        <div class="doctor-card">
+          <div class="doc-header">
+            <div class="doc-avatar">
+              {{ doc.user?.first_name?.charAt(0) }}{{ doc.user?.last_name?.charAt(0) }}
+            </div>
+            <div class="doc-title-info">
+              <h3>Dr. {{ doc.user?.full_name }}</h3>
+              <span class="badge-specialty">{{ doc.specialization }}</span>
+            </div>
+          </div>
+          
+          <div class="doc-body">
+            <div class="info-line"><span>Experience:</span> <strong>{{ doc.experience_years }} years</strong></div>
+            <div class="info-line"><span>Consultation Fee:</span> <strong>${{ doc.consultation_fee }}</strong></div>
+          </div>
+          
+          <div class="doc-footer">
+            <a [routerLink]="['/doctors', doc.id]" class="btn-primary-outline w-100 text-center">View Profile</a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
