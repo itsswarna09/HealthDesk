@@ -1,0 +1,101 @@
+<div class="auth-wrapper">
+  <div class="auth-card wide">
+
+    <div class="auth-header">
+      <div class="brand">
+        <span class="brand-icon">⚕</span>
+        <span class="brand-name">HealthDesk</span>
+      </div>
+      <h1>Create account</h1>
+      <p>Join the HealthDesk platform</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+
+      <div class="field-row">
+        <div class="field">
+          <label for="first_name">First name</label>
+          <input id="first_name" type="text" formControlName="first_name" placeholder="John"
+            [class.invalid]="form.get('first_name')?.invalid && form.get('first_name')?.touched" />
+          @if (form.get('first_name')?.invalid && form.get('first_name')?.touched) {
+            <span class="field-error">First name is required.</span>
+          }
+        </div>
+        <div class="field">
+          <label for="last_name">Last name</label>
+          <input id="last_name" type="text" formControlName="last_name" placeholder="Doe"
+            [class.invalid]="form.get('last_name')?.invalid && form.get('last_name')?.touched" />
+          @if (form.get('last_name')?.invalid && form.get('last_name')?.touched) {
+            <span class="field-error">Last name is required.</span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="reg-email">Email address</label>
+        <input id="reg-email" type="email" formControlName="email" placeholder="you@example.com"
+          [class.invalid]="form.get('email')?.invalid && form.get('email')?.touched" />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <span class="field-error">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="phone">Phone (optional)</label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="+91 9876543210" />
+        </div>
+        <div class="field">
+          <label for="blood_group">Blood group</label>
+          <select id="blood_group" formControlName="blood_group">
+            @for (bg of bloodGroups; track bg) {
+              <option [value]="bg">{{ bg }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>I am a</label>
+        <div class="role-buttons">
+          @for (r of roles; track r.value) {
+            <label class="role-option" [class.selected]="form.get('role')?.value === r.value">
+              <input type="radio" formControlName="role" [value]="r.value" />
+              {{ r.label }}
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" type="password" formControlName="password" placeholder="Min. 8 characters"
+            [class.invalid]="form.get('password')?.invalid && form.get('password')?.touched" />
+          @if (form.get('password')?.errors?.['minlength'] && form.get('password')?.touched) {
+            <span class="field-error">At least 8 characters.</span>
+          }
+        </div>
+        <div class="field">
+          <label for="password2">Confirm password</label>
+          <input id="password2" type="password" formControlName="password2" placeholder="••••••••"
+            [class.invalid]="passwordMismatch" />
+          @if (passwordMismatch) {
+            <span class="field-error">Passwords do not match.</span>
+          }
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        @if (loading) { <span class="spinner"></span> Creating account… }
+        @else { Create Account }
+      </button>
+
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+
+  </div>
+</div>

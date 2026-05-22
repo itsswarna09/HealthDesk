@@ -1,0 +1,126 @@
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+}
+.page-header h1 { font-size: 1.75rem; font-weight: 800; margin: 0; }
+.page-header p { color: var(--text-muted); margin-top: 0.25rem; }
+.btn-new {
+  background: var(--primary); color: white; padding: 0.65rem 1.25rem;
+  border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.9rem;
+  display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
+.btn-new:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+.alert-success {
+  background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
+  padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; margin-bottom: 1rem;
+}
+.alert-error {
+  background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+  padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; margin-bottom: 1rem;
+}
+
+.loading-state { text-align: center; padding: 4rem 2rem; }
+.spinner-large {
+  width: 40px; height: 40px; margin: 0 auto 1rem;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state-card {
+  text-align: center; padding: 4rem 2rem;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.empty-state-card p { color: var(--text-muted); }
+.empty-state-card a { color: var(--primary); font-weight: 600; }
+
+/* ── Section ── */
+.section-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin: 2rem 0 1rem;
+}
+.section-header h2 { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+.count {
+  background: rgba(255,255,255,0.08); color: var(--text-muted); font-size: 0.78rem; font-weight: 700;
+  padding: 0.15rem 0.5rem; border-radius: 20px; margin-left: 0.25rem;
+}
+.section-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-pending { background: #f59e0b; }
+.dot-accepted { background: #10b981; }
+.dot-past { background: #94a3b8; }
+
+/* ── Cards ── */
+.appointment-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.appointment-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1.5rem;
+  flex-wrap: wrap; transition: box-shadow 0.2s;
+}
+.appointment-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.status-pending-card { border-left: 4px solid #f59e0b; }
+.status-accepted-card { border-left: 4px solid #10b981; }
+.status-past-card { border-left: 4px solid #cbd5e1; opacity: 0.85; }
+
+.apt-left { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 200px; }
+.apt-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white; font-weight: 700; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.apt-avatar-green { background: linear-gradient(135deg, #059669, #10b981); }
+.apt-avatar-grey { background: linear-gradient(135deg, #94a3b8, #cbd5e1); }
+.apt-info { display: flex; flex-direction: column; }
+.apt-info strong { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+.apt-info span { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+.apt-middle { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; min-width: 140px; }
+.apt-datetime { display: flex; flex-direction: column; align-items: flex-end; }
+.apt-date { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+.apt-time { font-size: 0.82rem; color: var(--text-muted); }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 20px;
+}
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-accepted { background: #dcfce7; color: #15803d; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+.status-completed { background: #dbeafe; color: #1e40af; }
+.status-cancelled { background: rgba(255,255,255,0.08); color: #64748b; }
+
+.apt-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-accept {
+  background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
+  padding: 0.45rem 0.9rem; border-radius: 7px; font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-accept:hover { background: #bbf7d0; }
+.btn-reject {
+  background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+  padding: 0.45rem 0.9rem; border-radius: 7px; font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-reject:hover { background: #fecaca; }
+.btn-cancel {
+  background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);
+  padding: 0.45rem 0.9rem; border-radius: 7px; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-cancel:hover:not(:disabled) { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-complete {
+  background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;
+  padding: 0.45rem 0.9rem; border-radius: 7px; font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-complete:hover { background: #bfdbfe; }
+
+.apt-notes {
+  width: 100%; font-size: 0.82rem; color: var(--text-muted);
+  background: rgba(255,255,255,0.05); border-radius: 6px; padding: 0.4rem 0.75rem; margin-top: 0.25rem;
+}

@@ -1,0 +1,159 @@
+<app-navbar />
+
+<div class="page-container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your account information</p>
+  </div>
+
+  <div class="profile-grid">
+
+    <!-- Profile Info Form -->
+    <div class="card">
+      <h2 class="card-title">📋 Personal Information</h2>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+
+        <div class="field-row">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" formControlName="first_name" />
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" formControlName="last_name" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" formControlName="phone" placeholder="+91 9876543210" />
+          </div>
+          <div class="field">
+            <label>Blood group</label>
+            <select formControlName="blood_group">
+              @for (bg of bloodGroups; track bg) {
+                <option [value]="bg">{{ bg }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Gender</label>
+            <select formControlName="gender">
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field" style="display: flex; align-items: center; gap: 10px; margin-top: 25px;">
+            <input type="checkbox" id="donor" formControlName="blood_donor_available" style="width: auto;">
+            <label for="donor" style="margin: 0; cursor: pointer;">Available as a Blood Donor</label>
+          </div>
+        </div>
+
+        <div class="section-divider">Address Details</div>
+        
+        <div class="field">
+          <label>Street Address</label>
+          <input type="text" formControlName="address_street" placeholder="123 Main St" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>City</label>
+            <input type="text" formControlName="address_city" placeholder="City" />
+          </div>
+          <div class="field">
+            <label>State</label>
+            <input type="text" formControlName="address_state" placeholder="State" />
+          </div>
+          <div class="field">
+            <label>ZIP Code</label>
+            <input type="text" formControlName="address_zip" placeholder="12345" />
+          </div>
+        </div>
+
+        <div class="section-divider">Emergency Contact</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Contact name</label>
+            <input type="text" formControlName="emergency_contact_name" placeholder="Jane Doe" />
+          </div>
+          <div class="field">
+            <label>Contact phone</label>
+            <input type="tel" formControlName="emergency_contact_phone" placeholder="+91 9876543210" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="loadingProfile">
+          @if (loadingProfile) { <span class="spinner"></span> Saving… }
+          @else { Save Changes }
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Password Change Form -->
+    <div class="card">
+      <h2 class="card-title">🔐 Change Password</h2>
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+
+        <div class="field">
+          <label>Current password</label>
+          <input type="password" formControlName="old_password" placeholder="••••••••" />
+        </div>
+
+        <div class="field">
+          <label>New password</label>
+          <input type="password" formControlName="new_password" placeholder="Min. 8 characters"
+            [class.invalid]="passwordForm.get('new_password')?.errors?.['minlength'] && passwordForm.get('new_password')?.touched" />
+          @if (passwordForm.get('new_password')?.errors?.['minlength'] && passwordForm.get('new_password')?.touched) {
+            <span class="field-error">At least 8 characters.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label>Confirm new password</label>
+          <input type="password" formControlName="new_password2" placeholder="••••••••"
+            [class.invalid]="passwordMismatch" />
+          @if (passwordMismatch) {
+            <span class="field-error">Passwords do not match.</span>
+          }
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="loadingPassword">
+          @if (loadingPassword) { <span class="spinner"></span> Updating… }
+          @else { Change Password }
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Doctor Availability -->
+    <app-doctor-availability></app-doctor-availability>
+
+    <!-- Account Info (read only) -->
+    <div class="card info-card-small">
+      <h2 class="card-title">ℹ Account Details</h2>
+      @if (user) {
+        <div class="info-row"><span>Email</span><strong>{{ user.email }}</strong></div>
+        <div class="info-row"><span>Role</span><strong>{{ user.role }}</strong></div>
+        <div class="info-row"><span>Status</span>
+          <strong [class]="user.is_active ? 'text-green' : 'text-red'">
+            {{ user.is_active ? 'Active' : 'Deactivated' }}
+          </strong>
+        </div>
+        <div class="info-row"><span>Verified</span>
+          <strong [class]="user.is_verified ? 'text-green' : 'text-yellow'">
+            {{ user.is_verified ? '✓ Yes' : '⏳ Pending' }}
+          </strong>
+        </div>
+        <div class="info-row"><span>Member since</span><strong>{{ user.created_at | date:'mediumDate' }}</strong></div>
+      }
+    </div>
+
+  </div>
+</div>

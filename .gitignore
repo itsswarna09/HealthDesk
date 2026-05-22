@@ -1,0 +1,73 @@
+# ============================================================
+# HealthDesk — .gitignore
+# ============================================================
+# This file tells Git what NOT to track.
+# Rule: Never commit secrets, build artifacts, or local config.
+# ============================================================
+
+# ─── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ─── Virtual Environment ──────────────────────────────────────
+venv/
+env/
+.env/
+.venv/
+ENV/
+
+# ─── Environment Variables (CRITICAL — never commit!) ────────
+.env
+# .env.example is SAFE to commit (it has no real secrets)
+
+# ─── Django ──────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# ─── Node / Angular ──────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn
+dist/
+.angular/
+*.js.map
+
+# ─── IDEs ────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Testing ─────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# ─── Docker ──────────────────────────────────────────────────
+.docker/

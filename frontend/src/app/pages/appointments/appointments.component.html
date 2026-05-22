@@ -1,0 +1,212 @@
+<app-navbar />
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>{{ isDoctor ? '🩺 Appointment Requests' : '📅 My Appointments' }}</h1>
+      <p>{{ isDoctor ? 'Manage patient booking requests' : 'View and manage your appointments' }}</p>
+    </div>
+    @if (!isDoctor) {
+      <a routerLink="/doctors" class="btn-new">+ Book New</a>
+    }
+  </div>
+
+  @if (successMsg) {
+    <div class="alert-success">{{ successMsg }}</div>
+  }
+  @if (errorMsg) {
+    <div class="alert-error">{{ errorMsg }}</div>
+  }
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p>Loading appointments…</p>
+    </div>
+  } @else if (appointments.length === 0) {
+    <div class="empty-state-card">
+      <div class="empty-icon">📋</div>
+      <h3>No appointments yet</h3>
+      @if (!isDoctor) {
+        <p>You haven't booked any appointments. <a routerLink="/doctors">Find a doctor</a> to get started.</p>
+      } @else {
+        <p>No patient requests yet. Once patients book with you, they'll appear here.</p>
+      }
+    </div>
+  } @else {
+
+    <!-- PENDING Section -->
+    @if (pending.length > 0) {
+      <div class="section-header">
+        <span class="section-dot dot-pending"></span>
+        <h2>Pending <span class="count">{{ pending.length }}</span></h2>
+      </div>
+      <div class="appointment-list">
+        @for (apt of pending; track apt.id) {
+          <div class="appointment-card status-pending-card">
+            <div class="apt-left">
+              <div class="apt-avatar">
+                @if (isDoctor) {
+                  {{ apt.patient?.first_name?.charAt(0) }}{{ apt.patient?.last_name?.charAt(0) }}
+                } @else {
+                  {{ apt.doctor?.user?.first_name?.charAt(0) }}{{ apt.doctor?.user?.last_name?.charAt(0) }}
+                }
+              </div>
+              <div class="apt-info">
+                @if (isDoctor) {
+                  <strong>{{ apt.patient?.full_name }}</strong>
+                  <span>{{ apt.reason_for_visit || 'No reason provided' }}</span>
+                } @else {
+                  <strong>Dr. {{ apt.doctor?.user?.full_name }}</strong>
+                  <span>{{ apt.doctor?.specialization }}</span>
+                }
+              </div>
+            </div>
+            <div class="apt-middle">
+              <div class="apt-datetime">
+                <span class="apt-date">{{ apt.date | date:'mediumDate' }}</span>
+                <span class="apt-time">{{ apt.time_slot }}</span>
+              </div>
+              <span class="status-badge status-pending">⏳ PENDING</span>
+            </div>
+            <div class="apt-actions">
+              @if (isDoctor) {
+                <button class="btn-accept" (click)="updateStatus(apt.id, 'ACCEPTED')">✓ Accept</button>
+                <button class="btn-reject" (click)="updateStatus(apt.id, 'REJECTED')">✕ Reject</button>
+              } @else {
+                <button class="btn-cancel" 
+                        [disabled]="cancellingId === apt.id"
+                        (click)="cancelAppointment(apt.id)">
+                  {{ cancellingId === apt.id ? 'Cancelling…' : 'Cancel' }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ACCEPTED Section -->
+    @if (accepted.length > 0) {
+      <div class="section-header">
+        <span class="section-dot dot-accepted"></span>
+        <h2>Upcoming <span class="count">{{ accepted.length }}</span></h2>
+      </div>
+      <div class="appointment-list">
+        @for (apt of accepted; track apt.id) {
+          <div class="appointment-card status-accepted-card">
+            <div class="apt-left">
+              <div class="apt-avatar apt-avatar-green">
+                @if (isDoctor) {
+                  {{ apt.patient?.first_name?.charAt(0) }}{{ apt.patient?.last_name?.charAt(0) }}
+                } @else {
+                  {{ apt.doctor?.user?.first_name?.charAt(0) }}{{ apt.doctor?.user?.last_name?.charAt(0) }}
+                }
+              </div>
+              <div class="apt-info">
+                @if (isDoctor) {
+                  <strong>{{ apt.patient?.full_name }}</strong>
+                  <span>{{ apt.reason_for_visit || 'No reason provided' }}</span>
+                } @else {
+                  <strong>Dr. {{ apt.doctor?.user?.full_name }}</strong>
+                  <span>{{ apt.doctor?.specialization }}</span>
+                }
+              </div>
+            </div>
+            <div class="apt-middle">
+              <div class="apt-datetime">
+                <span class="apt-date">{{ apt.date | date:'mediumDate' }}</span>
+                <span class="apt-time">{{ apt.time_slot }}</span>
+              </div>
+              <span class="status-badge status-accepted">✅ CONFIRMED</span>
+            </div>
+            <div class="apt-actions">
+              @if (isDoctor) {
+                <button class="btn-complete" (click)="openCompleteModal(apt.id)">Mark Complete</button>
+              } @else {
+                <button class="btn-cancel"
+                        [disabled]="cancellingId === apt.id"
+                        (click)="cancelAppointment(apt.id)">
+                  {{ cancellingId === apt.id ? 'Cancelling…' : 'Cancel' }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- HISTORY Section -->
+    @if (past.length > 0) {
+      <div class="section-header">
+        <span class="section-dot dot-past"></span>
+        <h2>History <span class="count">{{ past.length }}</span></h2>
+      </div>
+      <div class="appointment-list">
+        @for (apt of past; track apt.id) {
+          <div class="appointment-card status-past-card">
+            <div class="apt-left">
+              <div class="apt-avatar apt-avatar-grey">
+                @if (isDoctor) {
+                  {{ apt.patient?.first_name?.charAt(0) }}{{ apt.patient?.last_name?.charAt(0) }}
+                } @else {
+                  {{ apt.doctor?.user?.first_name?.charAt(0) }}{{ apt.doctor?.user?.last_name?.charAt(0) }}
+                }
+              </div>
+              <div class="apt-info">
+                @if (isDoctor) {
+                  <strong>{{ apt.patient?.full_name }}</strong>
+                  <span>{{ apt.reason_for_visit || 'No reason provided' }}</span>
+                } @else {
+                  <strong>Dr. {{ apt.doctor?.user?.full_name }}</strong>
+                  <span>{{ apt.doctor?.specialization }}</span>
+                }
+              </div>
+            </div>
+            <div class="apt-middle">
+              <div class="apt-datetime">
+                <span class="apt-date">{{ apt.date | date:'mediumDate' }}</span>
+                <span class="apt-time">{{ apt.time_slot }}</span>
+              </div>
+              <span class="status-badge" [class]="statusClass(apt.status)">{{ statusIcon(apt.status) }} {{ apt.status }}</span>
+            </div>
+            @if (apt.notes) {
+              <div class="apt-notes">📝 {{ apt.notes }}</div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- ── COMPLETION MODAL ── -->
+@if (showCompleteModal) {
+  <div class="modal-backdrop" (click)="closeCompleteModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Complete Appointment</h2>
+        <button class="modal-close" (click)="closeCompleteModal()">✕</button>
+      </div>
+
+      <div class="upload-form" style="margin-top: 1rem;">
+        <p class="text-muted" style="margin-bottom: 1rem;">Provide consultation notes, diagnosis, or prescription details below. These notes will be visible to the patient in their appointment history.</p>
+        
+        <div class="field">
+          <label>Consultation Notes <span class="req">*</span></label>
+          <textarea [(ngModel)]="completionNotes" rows="5" placeholder="Patient presented with... Diagnosis: ... Prescribed: ..." class="form-textarea"></textarea>
+        </div>
+
+        <button class="btn-confirm mt-3" 
+                [disabled]="!completionNotes.trim() || updatingId === completingAptId" 
+                (click)="submitCompletion()">
+          @if (updatingId === completingAptId) {
+            <span class="spinner-sm"></span> Saving...
+          } @else {
+            Mark as Completed
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
