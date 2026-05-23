@@ -54,9 +54,34 @@ export class RegisterComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        const msg = err.error?.message || 'Registration failed. Please try again.';
-        this.toast.error(msg);
+        let msg = err.error?.message || 'Registration failed. Please try again.';
         this.loading = false;
+
+        if (err.error?.errors) {
+          const errorsObj = err.error.errors;
+          
+          // Map to FormControls so they display inline
+          Object.keys(errorsObj).forEach(key => {
+            const control = this.form.get(key);
+            if (control) {
+              const serverErrors = errorsObj[key];
+              const errorText = Array.isArray(serverErrors) ? serverErrors[0] : String(serverErrors);
+              control.setErrors({ serverError: errorText });
+              control.markAsTouched();
+            }
+          });
+
+          // Show specific details in the Toast if possible
+          const firstErrorField = Object.keys(errorsObj)[0];
+          const firstErrorMsgs = errorsObj[firstErrorField];
+          const firstErrorMsg = Array.isArray(firstErrorMsgs) ? firstErrorMsgs[0] : String(firstErrorMsgs);
+          if (firstErrorMsg) {
+            const fieldName = firstErrorField.replace('_', ' ');
+            const formattedField = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+            msg = `${msg} (${formattedField}: ${firstErrorMsg})`;
+          }
+        }
+        this.toast.error(msg);
       }
     });
   }

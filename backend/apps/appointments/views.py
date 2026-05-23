@@ -6,7 +6,7 @@ from bson import ObjectId
 from core.utils.api_response import APIResponse
 from core.permissions import IsDoctor, IsPatient
 from apps.users.models import Role, UserDocument
-from .models import DoctorDocument, AppointmentDocument
+from .models import DoctorDocument, AppointmentDocument, AppointmentStatus
 from .serializers import DoctorProfileSerializer, AppointmentBookSerializer, AppointmentStatusUpdateSerializer
 
 class DoctorListView(APIView):
@@ -205,12 +205,16 @@ class DoctorSlotsView(APIView):
         if not doctor:
             return APIResponse.not_found('Doctor not found.')
             
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
+        from django.utils import timezone as django_timezone
+        
+        # Get current timezone-aware local time
+        now_local = django_timezone.localtime(django_timezone.now())
+        today_local = now_local.date()
         
         try:
             req_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            today = datetime.now(timezone.utc).date()
-            if req_date < today:
+            if req_date < today_local:
                 return APIResponse.success(data=[])
         except ValueError:
             return APIResponse.error('Invalid date format.')
@@ -236,17 +240,16 @@ class DoctorSlotsView(APIView):
             end_dt = datetime.strptime(end_time_str, '%H:%M')
             curr_dt = start_dt
             
-            # If date is today, filter out past times
-            now = datetime.now(timezone.utc)
-            is_today = (req_date == today)
+            is_today = (req_date == today_local)
             
             while curr_dt < end_dt:
                 slot_str = curr_dt.strftime('%H:%M')
                 
-                # Check if it's past today
+                # Check if it's past or within 15 minutes booking window
                 if is_today:
                     slot_hour, slot_minute = map(int, slot_str.split(':'))
-                    if slot_hour < now.hour or (slot_hour == now.hour and slot_minute <= now.minute):
+                    slot_dt = now_local.replace(hour=slot_hour, minute=slot_minute, second=0, microsecond=0)
+                    if slot_dt < now_local + timedelta(minutes=15):
                         curr_dt += timedelta(minutes=30)
                         continue
                         
@@ -257,7 +260,7 @@ class DoctorSlotsView(APIView):
             
         # Remove booked slots
         existing = AppointmentDocument.collection().find({
-            'doctor_id': doctor.get('_id'),
+            'doctor_id': ObjectId(doctor.get('_id')),
             'date': date_str,
             'status': {'$in': [AppointmentStatus.PENDING, AppointmentStatus.ACCEPTED]}
         })

@@ -39,6 +39,7 @@ export class RecordsComponent implements OnInit {
   uploadForm = {
     title: '',
     category: 'Other',
+    customCategory: '',
     description: '',
     doctor_name: '',
     record_date: ''
@@ -85,7 +86,7 @@ export class RecordsComponent implements OnInit {
     this.showUpload = true;
     this.uploadError = '';
     this.selectedFile = null;
-    this.uploadForm = { title: '', category: 'Other', description: '', doctor_name: '', record_date: '' };
+    this.uploadForm = { title: '', category: 'Other', customCategory: '', description: '', doctor_name: '', record_date: '' };
   }
 
   closeUpload() { this.showUpload = false; }
@@ -94,9 +95,12 @@ export class RecordsComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
-      if (!allowed.includes(file.type)) {
-        this.uploadError = 'Only PDF and image files are allowed.';
+      const allowed = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+      
+      if (!allowed.includes(file.type) && (!extension || !allowedExtensions.includes(extension))) {
+        this.uploadError = `Invalid file type. Only PDF and images are allowed.`;
         this.selectedFile = null;
         return;
       }
@@ -128,10 +132,14 @@ export class RecordsComponent implements OnInit {
     this.uploadLoading = true;
     this.uploadError = '';
 
+    const finalCategory = this.uploadForm.category === 'Other' 
+        ? (this.uploadForm.customCategory.trim() || 'Other') 
+        : this.uploadForm.category;
+
     const fd = new FormData();
     fd.append('file', this.selectedFile);
     fd.append('title', this.uploadForm.title);
-    fd.append('category', this.uploadForm.category);
+    fd.append('category', finalCategory);
     fd.append('description', this.uploadForm.description);
     fd.append('doctor_name', this.uploadForm.doctor_name);
     fd.append('record_date', this.uploadForm.record_date);
@@ -148,8 +156,15 @@ export class RecordsComponent implements OnInit {
         }
         this.uploadLoading = false;
       },
-      error: (err: { error?: { message?: string } }) => {
-        this.uploadError = err.error?.message || 'Upload failed.';
+      error: (err: any) => {
+        console.error('Upload error:', err);
+        let errorMsg = 'Upload failed. Please check your connection and try again.';
+        if (err.error && typeof err.error.message === 'string') {
+          errorMsg = err.error.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+        this.uploadError = errorMsg;
         this.uploadLoading = false;
       }
     });

@@ -35,7 +35,9 @@
         <label for="reg-email">Email address</label>
         <input id="reg-email" type="email" formControlName="email" placeholder="you@example.com"
           [class.invalid]="form.get('email')?.invalid && form.get('email')?.touched" />
-        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+        @if (form.get('email')?.errors?.['serverError']) {
+          <span class="field-error">{{ form.get('email')?.errors?.['serverError'] }}</span>
+        } @else if (form.get('email')?.invalid && form.get('email')?.touched) {
           <span class="field-error">Enter a valid email address.</span>
         }
       </div>
@@ -72,7 +74,9 @@
           <label for="reg-password">Password</label>
           <input id="reg-password" type="password" formControlName="password" placeholder="Min. 8 characters"
             [class.invalid]="form.get('password')?.invalid && form.get('password')?.touched" />
-          @if (form.get('password')?.errors?.['minlength'] && form.get('password')?.touched) {
+          @if (form.get('password')?.errors?.['serverError']) {
+            <span class="field-error">{{ form.get('password')?.errors?.['serverError'] }}</span>
+          } @else if (form.get('password')?.errors?.['minlength'] && form.get('password')?.touched) {
             <span class="field-error">At least 8 characters.</span>
           }
         </div>

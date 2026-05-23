@@ -25,14 +25,17 @@ export class DoctorDetailComponent implements OnInit {
   doctor: Doctor | null = null;
   loading = true;
 
-  // ── Booking Modal ──────────────────────────────────────────────
+  // ── Booking Modal State ──
   showBookingModal = false;
-  selectedDate: string = '';
-  selectedSlot: string = '';
-  bookingReason: string = '';
+  selectedDate = '';
+  selectedSlot = '';
+  bookingReason = '';
   bookingLoading = false;
   bookingSuccess = false;
   bookingError = '';
+  dynamicSlots: string[] = [];
+  slotsLoading = false;
+  isDayOff = false;
 
   get isPatient() {
     return this.auth.currentUser()?.role === 'PATIENT';
@@ -40,23 +43,22 @@ export class DoctorDetailComponent implements OnInit {
 
   get selectedDayName(): string {
     if (!this.selectedDate) return '';
-    // Must parse as local date to get correct day
     const [year, month, day] = this.selectedDate.split('-').map(Number);
     const d = new Date(year, month - 1, day);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[d.getDay()];
   }
 
-  dynamicSlots: string[] = [];
-  slotsLoading = false;
-  isDayOff = false;
-
   get availableSlots(): string[] {
     return this.dynamicSlots;
   }
 
   get minDate(): string {
-    return new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   ngOnInit() {
@@ -75,11 +77,17 @@ export class DoctorDetailComponent implements OnInit {
   }
 
   openBooking() {
-    this.showBookingModal = true;
-    this.bookingSuccess = false;
-    this.bookingError = '';
-    // Keep selectedDate and selectedSlot as they are for the modal
+    // Reset everything for a fresh booking attempt
+    this.selectedDate = '';
+    this.selectedSlot = '';
     this.bookingReason = '';
+    this.bookingError = '';
+    this.bookingSuccess = false;
+    this.bookingLoading = false;
+    this.dynamicSlots = [];
+    this.slotsLoading = false;
+    this.isDayOff = false;
+    this.showBookingModal = true;
   }
 
   closeBooking() {
@@ -90,9 +98,10 @@ export class DoctorDetailComponent implements OnInit {
     this.selectedSlot = '';
     this.dynamicSlots = [];
     this.isDayOff = false;
+    this.bookingError = '';
 
     if (!this.selectedDate || !this.doctor) return;
-    
+
     // Check if it's explicitly an unavailable date
     if (this.doctor.unavailable_dates?.includes(this.selectedDate)) {
       this.isDayOff = true;
@@ -104,6 +113,10 @@ export class DoctorDetailComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data) {
           this.dynamicSlots = res.data;
+          if (this.dynamicSlots.length === 0) {
+            // Check if the day itself is off (no slots returned)
+            this.isDayOff = false; // It might just be fully booked
+          }
         }
         this.slotsLoading = false;
       },
@@ -115,6 +128,7 @@ export class DoctorDetailComponent implements OnInit {
 
   selectSlot(slot: string) {
     this.selectedSlot = slot;
+    this.bookingError = '';
   }
 
   confirmBooking() {
@@ -129,16 +143,32 @@ export class DoctorDetailComponent implements OnInit {
       reason_for_visit: this.bookingReason
     }).subscribe({
       next: (res) => {
+        this.bookingLoading = false;
         if (res.success) {
           this.bookingSuccess = true;
         } else {
           this.bookingError = res.message || 'Booking failed. Please try again.';
         }
-        this.bookingLoading = false;
       },
       error: (err) => {
-        this.bookingError = err.error?.message || 'Something went wrong. Please try again.';
         this.bookingLoading = false;
+        const errObj = err.error;
+        if (errObj && errObj.errors) {
+          const errorList: string[] = [];
+          Object.keys(errObj.errors).forEach(key => {
+            const val = errObj.errors[key];
+            if (Array.isArray(val)) {
+              errorList.push(...val);
+            } else if (typeof val === 'string') {
+              errorList.push(val);
+            }
+          });
+          if (errorList.length > 0) {
+            this.bookingError = errorList.join(' ');
+            return;
+          }
+        }
+        this.bookingError = errObj?.message || 'Something went wrong. Please try again.';
       }
     });
   }

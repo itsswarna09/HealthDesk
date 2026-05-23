@@ -106,9 +106,15 @@
             <label>Category</label>
             <select [(ngModel)]="uploadForm.category" class="form-select">
               @for (cat of categories; track cat) {
-                <option [value]="cat">{{ cat }}</option>
+                @if (cat !== 'Other') {
+                  <option [value]="cat">{{ cat }}</option>
+                }
               }
+              <option value="Other">Other (Custom)</option>
             </select>
+            @if (uploadForm.category === 'Other') {
+              <input type="text" [(ngModel)]="uploadForm.customCategory" placeholder="Enter custom category..." class="form-input mt-2" />
+            }
           </div>
           <div class="field">
             <label>Record Date</label>

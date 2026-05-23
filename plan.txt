@@ -1,0 +1,229 @@
+# HealthDesk Project – Comprehensive Implementation Overview
+
+---
+
+## 1. Project Summary
+- **Name:** HealthDesk
+- **Purpose:** A lightweight healthcare platform that enables patients, doctors, and donors to manage profiles, schedule appointments, store medical records, and request/employ blood donations.
+- **Architecture:** Single‑page Angular 17 front‑end (stand‑alone components) communicating with a Django 4.2 REST API (SQLite for admin/auth, MongoDB for business data).
+- **Repository layout** (root `E:\HealthDesk`):
+  - `backend/` – Django project (`healthdesk` package) and custom apps.
+  - `frontend/` – Angular workspace (`src/app/` contains all UI code).
+  - `plan.txt` – This documentation file.
+
+---
+
+## 2. Backend (Django) Details
+### 2.1 Core Files
+| File | Role |
+|------|------|
+| `backend/manage.py` | Django CLI entry‑point (runs migrations, server, creates super‑user, etc.). |
+| `backend/healthdesk/settings.py` | Global settings: installed apps, middleware, DB connections, JWT, CORS, and static/media handling. |
+| `backend/healthdesk/urls.py` | Routes: includes `api/` prefix and maps to `apps.*` routers. |
+| `backend/app.py` | Legacy Flask entry‑point (kept for reference, not used when running Django). |
+| `backend/requirements.txt` | Python dependencies: `Django==4.2.30`, `djangorestframework`, `djangorestframework‑simplejwt`, `pymongo`, `bcrypt`, `django‑cors‑headers`, `django‑filters`.
+
+### 2.2 Django Apps (inside `backend/apps/`)
+- **users** – User model (`auth.User` is used, custom fields could be added). Handles registration/login via JWT.
+- **appointments** – Models and views for patient‑doctor appointments.
+- **records** – Medical record CRUD.
+- **blood_requests** – Blood donation request & donor availability logic.
+- **emergency** – Emergency request handling (optional).
+
+Each app follows the classic Django pattern:
+```
+apps/<app_name>/
+    models.py       # MongoDB‑aware models (using pymongo wrappers)
+    serializers.py # DRF serializers for API payloads
+    views.py        # DRF ViewSets / APIViews
+    urls.py         # Router registration (included in healthdesk/urls.py)
+``` 
+### 2.3 Database
+- **SQLite** (`db.sqlite3`) – Stores Django admin/auth tables, sessions, and permissions.
+- **MongoDB** (`mongodb://localhost:27017/healthdesk_dev`) – Holds all domain data (users, appointments, records, blood requests). Connection details are in `settings.py` (MONGO_* variables).
+
+### 2.4 Authentication & Permissions
+- **JWT** via `djangorestframework‑simplejwt` (configured in `REST_FRAMEWORK` & `SIMPLE_JWT`).
+- Custom authentication class `core.authentication.MongoJWTAuthentication` validates the token and loads the user from MongoDB.
+- Default DRF permission: `IsAuthenticated` – all API endpoints require a valid JWT unless explicitly overridden.
+
+### 2.5 Key API Endpoints (prefix `/api/`)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/auth/register/` | Register a new user (role: PATIENT / DOCTOR / DONOR). |
+| `POST` | `/api/auth/login/` | Returns `access` & `refresh` JWT tokens. |
+| `GET`  | `/api/auth/me/` | Returns current user profile. |
+| `GET`  | `/api/appointments/` | List/create patient‑doctor appointments. |
+| `GET`  | `/api/records/` | CRUD for medical records. |
+| `GET`  | `/api/blood_requests/` | Create & manage blood donation requests. |
+| `GET`  | `/health/` | Simple health‑check for dev/CI. |
+
+### 2.6 Running the Django Server
+```powershell
+cd E:\HealthDesk\backend
+# (activate venv if present)
+python -m pip install -r requirements.txt   # ensures deps
+python manage.py makemigrations   # generate any missing migrations
+python manage.py migrate          # apply them
+python manage.py createsuperuser   # create admin login
+python manage.py runserver        # starts at http://127.0.0.1:8000
+```
+---
+
+## 3. Frontend (Angular 17) Details
+### 3.1 Core Files
+| File | Role |
+|------|------|
+| `frontend/angular.json` | Angular workspace configuration (builder, default project). |
+| `frontend/package.json` | NPM dependencies (Angular core, RxJS, Zone.js, dev‑tools). |
+| `frontend/tsconfig.json` | TypeScript compiler options (target ES2022, strict mode). |
+| `frontend/src/main.ts` | Bootstraps the app with `bootstrapApplication(AppComponent, ...)`. |
+| `frontend/src/app/app.component.ts` | Root component (stand‑alone, imports router outlet, shared navbar). |
+| `frontend/src/app/app.config.ts` | Provides HTTP client and global interceptors (JWT interceptor). |
+| `frontend/src/app/core/` | Services, interceptors, models, utilities. |
+| `frontend/src/app/pages/` | All UI pages (appointments, dashboard, doctors, login, profile, records, register). |
+| `frontend/src/app/shared/` | Re‑usable UI pieces (navbar, toast, modal). |
+
+### 3.2 Dependency List (after clean install)
+- `@angular/animations@17.3.0`
+- `@angular/common@17.3.0`
+- `@angular/compiler@17.3.0`
+- `@angular/core@17.3.0`
+- `@angular/forms@17.3.0`
+- `@angular/platform-browser@17.3.0`
+- `@angular/platform-browser-dynamic@17.3.0`
+- `@angular/router@17.3.0`
+- `rxjs@7.8.0`
+- `zone.js@0.14.3`
+- **Dev dependencies:** `@angular/cli@17.3.17`, `@angular/compiler-cli@17.3.0`, `@angular-devkit/build-angular@17.3.17`, `typescript@5.4.2`, testing libs (`jasmine`, `karma`).
+
+### 3.3 Architecture – Stand‑alone Components
+Angular 17 allows each component to be **stand‑alone**, removing the need for an NgModule. Every page component follows this template:
+```ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-appointments',
+  templateUrl: './appointments.component.html',
+  styleUrls: ['./appointments.component.css'],
+  standalone: true,
+  imports: [CommonModule, NavbarComponent, RouterLink, FormsModule]
+})
+export class AppointmentsComponent { /* page logic */ }
+```
+All pages (`dashboard`, `doctor-list`, `doctor-detail`, `login`, `register`, `profile`, `records`, etc.) use the same pattern.
+
+### 3.4 HTTP Communication
+- **HttpClient** is provided globally in `app.config.ts` via `provideHttpClient(withInterceptors([jwtInterceptor]))`.
+- **JWT Interceptor** (`core/interceptors/jwt.interceptor.ts`) reads the `access` token from localStorage and adds an `Authorization: Bearer <token>` header to every request.
+- Services (`auth.service.ts`, `appointment.service.ts`, `doctor.service.ts`, `record.service.ts`, …) wrap the API calls and map the backend `ApiResponse<T>` shape.
+
+### 3.5 Routing
+`src/app/app.routes.ts` defines routes such as:
+```ts
+{ path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+{ path: 'login', component: LoginComponent },
+{ path: 'register', component: RegisterComponent },
+{ path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+{ path: 'appointments', component: AppointmentsComponent, canActivate: [AuthGuard] },
+…
+```
+`AuthGuard` checks for a stored JWT; if missing, redirects to `/login`.
+
+### 3.6 State Management
+The project relies on **localStorage** for session persistence:
+- `access` and `refresh` tokens stored after login.
+- User profile (`currentUser`) cached for quick UI rendering.
+- No external state‑management library (NgRx) is used – the small MVP stays lightweight.
+
+### 3.7 Styling & UI Design
+- Uses **vanilla CSS** with a modern glass‑morphism look (gradient backgrounds, translucent cards, subtle shadows).
+- Google Font **Inter** is loaded in `index.html` for premium typography.
+- Components make use of CSS variables for theme colours, enabling a dark‑mode toggle (via a simple class on `body`).
+- Responsive layout achieved with CSS Grid/Flexbox; breakpoints at 768px and 1024px.
+
+### 3.8 Build & Serve
+```powershell
+cd E:\HealthDesk\frontend
+npm start   # or ng serve
+# Development server listens on http://localhost:4200
+```
+For production:
+```powershell
+npm run build   # outputs to dist/healthdesk-app
+# Deploy the `dist/` folder to any static web server (NGINX, Apache, etc.).
+```
+---
+
+## 4. Integration Flow (Frontend ↔ Backend)
+1. **User opens the SPA** → Angular loads and checks localStorage for a JWT.
+2. **If not logged in**, router redirects to `/login`.
+3. **Login page** calls `AuthService.login(email, password)` → POST `/api/auth/login/` → receives `access` & `refresh` → stored in localStorage.
+4. **All subsequent API calls** automatically carry the `Authorization` header via the JWT interceptor.
+5. **Protected pages** (dashboard, appointments, etc.) call their respective services, which talk to Django DRF viewsets. Data is stored in MongoDB and returned as JSON.
+6. **Logout** clears tokens and redirects to `/login`.
+
+---
+
+## 5. Project Setup Checklist (for a new developer)
+1. **Prerequisites**
+   - Windows 10/11, PowerShell.
+   - Python 3.11+ and `pip`.
+   - Node.js 20+ and npm 10+.
+   - MongoDB server running locally on default port 27017.
+2. **Clone the repo** (already present on the VM). 
+3. **Backend**
+   ```powershell
+   cd E:\HealthDesk\backend
+   python -m venv venv
+   .\venv\Scripts\activate
+   pip install -r requirements.txt
+   python manage.py makemigrations
+   python manage.py migrate
+   python manage.py createsuperuser   # follow prompts
+   python manage.py runserver        # http://127.0.0.1:8000
+   ```
+4. **Frontend**
+   ```powershell
+   cd E:\HealthDesk\frontend
+   # clean install (first time only)
+   cmd /c rd /s /q node_modules
+   if exist package-lock.json del package-lock.json
+   npm install --legacy-peer-deps   # pulls exact Angular 17 deps
+   npm start   # dev server at http://localhost:4200
+   ```
+5. **Testing the stack**
+   - Open `http://localhost:4200` → register a new user → login → navigate the UI.
+   - Verify API calls in the browser devtools (Authorization header present).
+   - Access Django admin at `http://127.0.0.1:8000/admin/` using the super‑user credentials.
+
+---
+
+## 6. Known Issues / Future Improvements
+- **Password validation** in Django super‑user creation was bypassed (`y` answer). In production replace with a strong password policy.
+- **MongoDB schema** is loosely typed; consider adding a validation layer or using ODM (e.g., `mongoengine`).
+- **Refresh‑token rotation** is enabled; a blacklist collection should be added to invalidate old tokens.
+- **Testing** – unit tests for Angular components and Django viewsets are not yet added.
+- **Dockerization** – container images for the backend and frontend would simplify deployment.
+
+---
+
+## 7. Quick Reference Table
+| Layer | Technology | Version | Main Config File |
+|-------|------------|---------|------------------|
+| Backend | Django | 4.2.30 | `backend/healthdesk/settings.py` |
+| Backend | DRF (Django REST Framework) | 3.15.x | `REST_FRAMEWORK` block in settings |
+| Backend | SimpleJWT | 5.3.x | `SIMPLE_JWT` block in settings |
+| Backend | MongoDB driver (pymongo) | 4.6.0 | `MONGO_*` variables in settings |
+| Frontend | Angular | 17.3.x | `frontend/angular.json` |
+| Frontend | TypeScript | 5.4.2 | `frontend/tsconfig.json` |
+| Frontend | RxJS | 7.8.0 | imported in services |
+| Frontend | Zone.js | 0.14.3 | required for change detection |
+
+---
+
+*End of `plan.txt` – this file provides a full picture of the HealthDesk project, its dependencies, architecture, and how each piece is implemented.*

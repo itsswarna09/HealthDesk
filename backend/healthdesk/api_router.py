@@ -17,6 +17,6 @@ urlpatterns = [
     # ── Phase 2+ (uncomment as features are built) ──────────────────────────
     path('appointments/', include('apps.appointments.urls')),
     path('records/', include('apps.records.urls')),
-    # path('blood-requests/', include('apps.blood_requests.urls')),
+    path('blood-requests/', include('apps.blood_requests.urls')),
     # path('emergency/', include('apps.emergency.urls')),
 ]

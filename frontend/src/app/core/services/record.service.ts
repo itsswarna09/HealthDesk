@@ -8,7 +8,7 @@ import { MedicalRecord } from '../models/record.model';
 @Injectable({ providedIn: 'root' })
 export class RecordService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}records/`;
+  private apiUrl = `${environment.apiUrl}/records/`;
 
   getRecords(category?: string, patientId?: string): Observable<ApiResponse<MedicalRecord[]>> {
     let params = new HttpParams();

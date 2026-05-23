@@ -1,0 +1,241 @@
+<app-navbar />
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Blood Donation</h1>
+      <p>Save lives by donating blood or find donors when in need.</p>
+    </div>
+    <button class="btn-primary" (click)="openRequestModal()">+ Request Blood</button>
+  </div>
+
+  @if (actionSuccess) {
+    <div class="alert-success">{{ actionSuccess }}</div>
+  }
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'requests'" (click)="switchTab('requests')">Blood Requests</button>
+    <button class="tab-btn" [class.active]="activeTab === 'donors'" (click)="switchTab('donors')">Available Donors</button>
+    <button class="tab-btn" [class.active]="activeTab === 'my_profile'" (click)="switchTab('my_profile')">My Donor Profile</button>
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab !== 'my_profile') {
+      <div class="filter-bar">
+        <select [(ngModel)]="filterBloodGroup" (change)="applyFilters()" class="form-select">
+          <option value="">All Blood Groups</option>
+          @for (bg of bloodGroups; track bg) { <option [value]="bg">{{ bg }}</option> }
+        </select>
+        <input type="text" [(ngModel)]="filterCity" (input)="applyFilters()" placeholder="Filter by City..." class="form-input" />
+      </div>
+    }
+
+    @if (loading) {
+      <div class="loading-state"><div class="spinner-large"></div><p>Loading...</p></div>
+    } @else {
+
+      <!-- REQUESTS TAB -->
+      @if (activeTab === 'requests') {
+        @if (requests.length === 0) {
+          <div class="empty-state">No blood requests found.</div>
+        } @else {
+          <div class="card-grid">
+            @for (req of requests; track req.id) {
+              <div class="card blood-card">
+                <div class="card-header">
+                  <div class="blood-badge">{{ req.blood_group }}</div>
+                  <div class="card-title-group">
+                    <h3>
+                    {{ req.hospital_name }}
+                    <span *ngIf="req.patient_id === auth.currentUser()?.id" class="you-label">(you)</span>
+                  </h3>
+                    <span class="city-label">📍 {{ req.city }}</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row"><span>Units Needed</span><strong>{{ req.units_required }}</strong></div>
+                  <div class="detail-row"><span>Urgency</span><strong [ngClass]="getUrgencyColor(req.urgency)">{{ req.urgency }}</strong></div>
+                  <div class="detail-row"><span>Contact</span><strong>{{ req.contact_name }} ({{ req.contact_phone }})</strong></div>
+                  @if (req.reason) { <div class="detail-row"><span>Reason</span><strong>{{ req.reason }}</strong></div> }
+                  <div class="detail-row"><span>Posted</span><strong>{{ req.created_at | date:'shortDate' }}</strong></div>
+                </div>
+                @if (req.patient_id === auth.currentUser()?.id && req.status === 'Pending') {
+  <div class="card-actions">
+    <button class="btn-outline-primary w-100 mr-2" (click)="openEditRequestModal(req)">Edit Request</button>
+    <button class="btn-outline-success w-100" (click)="markFulfilled(req.id)">Mark as Fulfilled</button>
+  </div>
+}
+                  <div class="card-actions">
+                    <button class="btn-outline-success w-100" (click)="markFulfilled(req.id)">Mark as Fulfilled</button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- DONORS TAB -->
+      @if (activeTab === 'donors') {
+        @if (donors.length === 0) {
+          <div class="empty-state">No donors found matching criteria.</div>
+        } @else {
+          <div class="card-grid">
+            @for (donor of donors; track donor.id) {
+              <div class="card blood-card">
+                <div class="card-header">
+                  <div class="blood-badge">{{ donor.blood_group }}</div>
+                  <div class="card-title-group">
+                <h3>
+                  {{ donor.user?.first_name }} {{ donor.user?.last_name }}
+                  <span *ngIf="donor.user?.email === auth.currentUser()?.email" class="you-label">(you)</span>
+                </h3>
+                    <span class="city-label">📍 {{ donor.city }}</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row"><span>Phone</span><strong>{{ donor.phone }}</strong></div>
+                  <div class="detail-row"><span>Email</span><strong>{{ donor.user?.email }}</strong></div>
+                  @if (donor.last_donated_date) {
+                    <div class="detail-row"><span>Last Donated</span><strong>{{ donor.last_donated_date | date:'mediumDate' }}</strong></div>
+                  }
+                  <div class="detail-row"><span>Status</span><strong class="text-success">Available</strong></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- MY PROFILE TAB -->
+      @if (activeTab === 'my_profile') {
+        <div class="profile-card">
+          @if (!myDonorProfile) {
+            <div class="empty-state">
+              <h3>You are not registered as a blood donor.</h3>
+              <p>Registering as a donor allows people in need to find and contact you.</p>
+              <button class="btn-primary mt-2" (click)="openDonorModal()">Register as Donor</button>
+            </div>
+          } @else {
+            <div class="profile-details">
+              <h2>My Donor Profile</h2>
+              <div class="detail-row"><span>Blood Group</span><strong>{{ myDonorProfile.blood_group }}</strong></div>
+              <div class="detail-row"><span>City</span><strong>{{ myDonorProfile.city }}</strong></div>
+              <div class="detail-row"><span>Phone</span><strong>{{ myDonorProfile.phone }}</strong></div>
+              <div class="detail-row"><span>Last Donated</span><strong>{{ myDonorProfile.last_donated_date ? (myDonorProfile.last_donated_date | date:'mediumDate') : 'Never / Not specified' }}</strong></div>
+              <div class="detail-row"><span>Status</span><strong [class.text-success]="myDonorProfile.is_available" [class.text-danger]="!myDonorProfile.is_available">{{ myDonorProfile.is_available ? 'Available to Donate' : 'Unavailable' }}</strong></div>
+              <button class="btn-outline mt-3" (click)="openDonorModal()">Edit Profile</button>
+            </div>
+          }
+        </div>
+      }
+
+    }
+  </div>
+</div>
+
+<!-- REQUEST MODAL -->
+@if (showRequestModal) {
+  <div class="modal-backdrop" (click)="closeRequestModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Create Blood Request</h2>
+        <button class="modal-close" (click)="closeRequestModal()">✕</button>
+      </div>
+      @if (actionError) { <div class="error-banner">{{ actionError }}</div> }
+      <div class="form-grid">
+        <div class="field">
+          <label>Blood Group Needed *</label>
+          <select [(ngModel)]="requestForm.blood_group" class="form-select">
+            @for (bg of bloodGroups; track bg) { <option [value]="bg">{{ bg }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label>Units Required *</label>
+          <input type="number" min="1" [(ngModel)]="requestForm.units_required" class="form-input" />
+        </div>
+        <div class="field">
+          <label>Urgency *</label>
+          <select [(ngModel)]="requestForm.urgency" class="form-select">
+            @for (u of urgencyLevels; track u) { <option [value]="u">{{ u }}</option> }
+          </select>
+        </div>
+          <div class="field">
+            <label>Address Line *</label>
+            <input type="text" #addressInput [(ngModel)]="requestForm.address_line" class="form-input" />
+          </div>
+          <div class="field">
+            <label>State *</label>
+            <input type="text" #stateInput [(ngModel)]="requestForm.state" class="form-input" />
+          </div>
+          <div class="field">
+            <label>Zip Code *</label>
+            <input type="text" #zipInput [(ngModel)]="requestForm.zip_code" class="form-input" />
+          </div>
+        <div class="field">
+          <label>Hospital Name *</label>
+          <input type="text" [(ngModel)]="requestForm.hospital_name" class="form-input" />
+        </div>
+        <div class="field">
+          <label>City *</label>
+            <input type="text" #cityInput [(ngModel)]="requestForm.city" class="form-input" />
+        </div>
+        <div class="field">
+          <label>Contact Name *</label>
+          <input type="text" [(ngModel)]="requestForm.contact_name" class="form-input" />
+        </div>
+        <div class="field">
+          <label>Contact Phone *</label>
+          <input type="text" [(ngModel)]="requestForm.contact_phone" class="form-input" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label>Reason / Additional Info</label>
+          <textarea [(ngModel)]="requestForm.reason" rows="2" class="form-textarea"></textarea>
+        </div>
+        <button class="btn-primary" style="grid-column: 1 / -1;" [disabled]="actionLoading" (click)="submitRequest()">
+          {{ actionLoading ? 'Posting...' : 'Post Request' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- DONOR MODAL -->
+@if (showDonorModal) {
+  <div class="modal-backdrop" (click)="closeDonorModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ myDonorProfile ? 'Edit Donor Profile' : 'Register as Donor' }}</h2>
+        <button class="modal-close" (click)="closeDonorModal()">✕</button>
+      </div>
+      @if (actionError) { <div class="error-banner">{{ actionError }}</div> }
+      <div class="form-grid">
+        <div class="field">
+          <label>Your Blood Group *</label>
+          <select [(ngModel)]="donorForm.blood_group" class="form-select">
+            @for (bg of bloodGroups; track bg) { <option [value]="bg">{{ bg }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label>City *</label>
+          <input type="text" [(ngModel)]="donorForm.city" class="form-input" />
+        </div>
+        <div class="field">
+          <label>Phone Number *</label>
+          <input type="text" [(ngModel)]="donorForm.phone" class="form-input" />
+        </div>
+        <div class="field">
+          <label>Last Donated Date</label>
+          <input type="date" [(ngModel)]="donorForm.last_donated_date" class="form-input" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="checkbox" id="avail" [(ngModel)]="donorForm.is_available" style="width: 18px; height: 18px;" />
+          <label for="avail" style="margin: 0;">I am currently available to donate blood</label>
+        </div>
+        <button class="btn-primary" style="grid-column: 1 / -1; margin-top: 1rem;" [disabled]="actionLoading" (click)="submitDonor()">
+          {{ actionLoading ? 'Saving...' : 'Save Profile' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -31,23 +31,40 @@ class AppointmentBookSerializer(serializers.Serializer):
         if not doctor:
             raise serializers.ValidationError("Doctor not found.")
             
-        from datetime import datetime, timezone
+        from datetime import datetime, timedelta
+        from django.utils import timezone as django_timezone
         
-        # Check past date
+        # Parse full requested slot datetime
         try:
             req_date = datetime.strptime(date, '%Y-%m-%d').date()
-            today = datetime.now(timezone.utc).date()
-            if req_date < today:
-                raise serializers.ValidationError("Cannot book appointments in the past.")
+            req_dt = datetime.strptime(f"{date} {time_slot}", "%Y-%m-%d %H:%M")
         except ValueError:
-            raise serializers.ValidationError("Invalid date format.")
+            raise serializers.ValidationError("Invalid date or time slot format.")
             
-        # Check unavailable dates
+        # Get timezone-aware current time and set req_dt to active timezone
+        now = django_timezone.now()
+        current_timezone = django_timezone.get_current_timezone()
+        req_dt = django_timezone.make_aware(req_dt, current_timezone)
+        
+        # 1. Prevent booking in the past (date or time)
+        if req_dt < now:
+            raise serializers.ValidationError("Cannot book appointments in the past.")
+            
+        # 2. Minimum booking window (15 minutes from now)
+        min_booking_time = now + timedelta(minutes=15)
+        if req_dt < min_booking_time:
+            raise serializers.ValidationError("Appointments must be booked at least 15 minutes in advance.")
+            
+        # 3. Enforce 30-minute boundary
+        if req_dt.minute not in [0, 30]:
+            raise serializers.ValidationError("Appointments can only be booked in 30-minute increments (e.g. HH:00 or HH:30).")
+            
+        # 4. Check unavailable dates
         unavailable = doctor.get('unavailable_dates', [])
         if date in unavailable:
             raise serializers.ValidationError("Doctor is not available on this date.")
             
-        # Check working hours and day
+        # 5. Check working hours and day
         weekday_name = req_date.strftime('%A').lower()
         schedule = doctor.get('schedule', {})
         day_schedule = schedule.get(weekday_name, {})
@@ -59,11 +76,11 @@ class AppointmentBookSerializer(serializers.Serializer):
         end = day_schedule.get('end', '23:59')
         if not (start <= time_slot < end):
             raise serializers.ValidationError(f"Time slot must be within doctor's working hours ({start} - {end}).")
-        
-        # Ensure doctor is available on this day/time
-        # Simplified validation for MVP: we just check if it's already booked
+            
+        # 6. Ensure slot isn't already booked
+        from bson import ObjectId
         existing = AppointmentDocument.collection().find_one({
-            'doctor_id': doctor.get('_id'),
+            'doctor_id': ObjectId(doctor.get('_id')),
             'date': date,
             'time_slot': time_slot,
             'status': {'$in': [AppointmentStatus.PENDING, AppointmentStatus.ACCEPTED]}

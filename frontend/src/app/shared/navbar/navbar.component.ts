@@ -21,6 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
         <a routerLink="/appointments" routerLinkActive="active">
           {{ auth.currentUser()?.role === 'DOCTOR' ? 'Requests' : 'Appointments' }}
         </a>
+        <a routerLink="/blood-donation" routerLinkActive="active">Blood Bank</a>
         <a routerLink="/profile" routerLinkActive="active">Profile</a>
         <button class="btn-logout" (click)="auth.logout()">Logout</button>
       </div>

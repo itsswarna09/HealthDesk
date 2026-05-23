@@ -85,12 +85,22 @@ MONGO_PORT = 27017
 
 AUTH_USER_MODEL = 'auth.User'
 
+# Password validation
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    # Simplified for local development / testing convenience:
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    # Commented out strict validators for development ease. Re-enable in production:
+    # {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    # {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
 
 # ─── Django REST Framework ───────────────────────────────────────────────────
 REST_FRAMEWORK = {

@@ -127,6 +127,13 @@ class AppointmentDocument:
             IndexModel([('doctor_id', ASCENDING)], name='doctor_id_index'),
             IndexModel([('date', ASCENDING), ('time_slot', ASCENDING)], name='datetime_index'),
             IndexModel([('status', ASCENDING)], name='status_index'),
+            # Prevent overlapping active bookings (race conditions)
+            IndexModel(
+                [('doctor_id', ASCENDING), ('date', ASCENDING), ('time_slot', ASCENDING)],
+                unique=True,
+                partialFilterExpression={'status': {'$in': [AppointmentStatus.PENDING, AppointmentStatus.ACCEPTED]}},
+                name='unique_active_doctor_slot'
+            )
         ])
 
     @staticmethod

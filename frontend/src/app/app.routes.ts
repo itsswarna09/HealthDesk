@@ -51,6 +51,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/doctors/doctor-detail/doctor-detail.component').then(m => m.DoctorDetailComponent)
   },
+  {
+    path: 'blood-donation',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/blood-donation/blood-donation.component').then(m => m.BloodDonationComponent)
+  },
 
   // Fallback
   { path: '**', redirectTo: 'dashboard' }

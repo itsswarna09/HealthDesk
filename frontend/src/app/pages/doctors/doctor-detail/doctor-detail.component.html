@@ -82,53 +82,14 @@
         </div>
 
         <div class="card">
-          <h3 class="card-title">🗓️ Book an Appointment</h3>
+          <h3 class="card-title">🗓️ Schedule & Availability</h3>
           @if (doctor.schedule) {
-            <div class="field" style="margin-bottom: 1rem;">
-              <label>Select Date:</label>
-              <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange()" [min]="minDate" class="form-input" style="max-width: 250px; cursor: pointer; margin-top: 0.5rem;" />
-            </div>
-
-            @if (selectedDate) {
-              @if (slotsLoading) {
-                <div class="day-card selected-day">
-                   <div class="spinner" style="display:inline-block; border-top-color: var(--primary);"></div>
-                   <span style="margin-left:10px;">Checking availability...</span>
-                </div>
-              } @else if (isDayOff) {
-                <div class="error-banner" style="margin-top: 1rem;">
-                  Dr. {{ doctor.user?.last_name }} is not available on {{ selectedDate | date:'mediumDate' }}. Please pick another date.
-                </div>
-              } @else if (availableSlots.length > 0) {
-                <div class="day-card selected-day">
-                  <strong>Available Slots for {{ selectedDayName }}, {{ selectedDate | date:'mediumDate' }}</strong>
-                  <div class="slots" style="margin-top: 0.75rem;">
-                    @for (slot of availableSlots; track slot) {
-                      <span class="time-slot" 
-                            [class.selected-slot]="selectedSlot === slot"
-                            (click)="$event.stopPropagation(); selectSlot(slot)">
-                        {{ slot }}
-                      </span>
-                    }
-                  </div>
-                </div>
-              } @else {
-                <div class="error-banner" style="margin-top: 1rem;">
-                  No available slots for Dr. {{ doctor.user?.last_name }} on this date. They may be fully booked or off. Please pick another date.
-                </div>
+            <div class="schedule-info">
+              <p class="text-muted">Select a date and time slot to book an appointment with Dr. {{ doctor.user?.last_name }}.</p>
+              @if (isPatient) {
+                <button class="btn-book-inline" (click)="openBooking()">📅 Book an Appointment</button>
               }
-            } @else {
-               <div class="text-muted" style="margin-top: 0.5rem;">
-                  Please select a date to view available time slots.
-               </div>
-            }
-
-            @if (selectedSlot && isPatient) {
-              <div class="quick-book-bar" style="margin-top: 1.5rem;">
-                <span>📅 Selected: <strong>{{ selectedDate | date:'mediumDate' }}, {{ selectedSlot }}</strong></span>
-                <button class="btn-book-sm" (click)="openBooking()">Proceed to Booking →</button>
-              </div>
-            }
+            </div>
           } @else {
             <p class="text-muted">Schedule not available online. Please call the clinic.</p>
           }
@@ -149,7 +110,7 @@
           <p>Your appointment with Dr. {{ doctor.user?.full_name }} is confirmed for <strong>{{ selectedDate | date:'mediumDate' }}</strong> at <strong>{{ selectedSlot }}</strong>.</p>
           <p class="status-note">Status: <span class="badge-pending">PENDING</span> — awaiting doctor confirmation.</p>
           <div class="modal-actions">
-            <a routerLink="/dashboard" class="btn-primary">Go to Dashboard</a>
+            <a routerLink="/appointments" class="btn-primary">View My Appointments</a>
             <button class="btn-ghost" (click)="closeBooking()">Close</button>
           </div>
         </div>
@@ -163,7 +124,7 @@
           <div class="modal-avatar">{{ doctor.user?.first_name?.charAt(0) }}{{ doctor.user?.last_name?.charAt(0) }}</div>
           <div>
             <strong>Dr. {{ doctor.user?.full_name }}</strong>
-            <span>{{ doctor.specialization }}</span>
+            <span>{{ doctor.specialization }} · ${{ doctor.consultation_fee }}</span>
           </div>
         </div>
 
@@ -172,27 +133,86 @@
         }
 
         <div class="booking-form">
-          <div class="booking-summary">
-            <div class="summary-row"><span>Doctor</span><strong>Dr. {{ doctor.user?.full_name }}</strong></div>
-            <div class="summary-row"><span>Date</span><strong>{{ selectedDate | date:'mediumDate' }} ({{ selectedDayName }})</strong></div>
-            <div class="summary-row"><span>Time</span><strong>{{ selectedSlot }}</strong></div>
-            <div class="summary-row"><span>Fee</span><strong class="fee">${{ doctor.consultation_fee }}</strong></div>
+          <!-- Step 1: Select Date -->
+          <div class="booking-step">
+            <div class="step-label">
+              <span class="step-number">1</span>
+              <span>Select Date</span>
+            </div>
+            <input type="date" 
+                   [(ngModel)]="selectedDate" 
+                   (change)="onDateChange()" 
+                   [min]="minDate" 
+                   class="form-input date-input" />
           </div>
 
-          <div class="field" style="margin-top: 1.25rem;">
-            <label>Reason for Visit <span class="optional">(optional)</span></label>
-            <textarea [(ngModel)]="bookingReason" rows="3" placeholder="Brief description of your concern…" class="form-textarea"></textarea>
-          </div>
+          <!-- Step 2: Select Time Slot -->
+          @if (selectedDate) {
+            <div class="booking-step">
+              <div class="step-label">
+                <span class="step-number">2</span>
+                <span>Select Time Slot — {{ selectedDayName }}, {{ selectedDate | date:'mediumDate' }}</span>
+              </div>
 
-          <button class="btn-confirm mt-3" 
-                  [disabled]="!selectedSlot || !selectedDate || bookingLoading"
-                  (click)="confirmBooking()">
-            @if (bookingLoading) {
-              <span class="spinner"></span> Booking…
-            } @else {
-              Confirm Appointment
-            }
-          </button>
+              @if (slotsLoading) {
+                <div class="slots-loading">
+                  <div class="spinner"></div>
+                  <span>Checking availability...</span>
+                </div>
+              } @else if (isDayOff) {
+                <div class="error-banner">
+                  Dr. {{ doctor.user?.last_name }} is not available on this date. Please pick another day.
+                </div>
+              } @else if (availableSlots.length > 0) {
+                <div class="slot-picker">
+                  @for (slot of availableSlots; track slot) {
+                    <button type="button"
+                            class="slot-btn" 
+                            [class.selected]="selectedSlot === slot"
+                            (click)="selectSlot(slot)">
+                      {{ slot }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <div class="error-banner">
+                  No available slots for this date. The doctor may be fully booked. Please pick another date.
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Step 3: Reason & Confirm -->
+          @if (selectedSlot) {
+            <div class="booking-step">
+              <div class="step-label">
+                <span class="step-number">3</span>
+                <span>Confirm Booking</span>
+              </div>
+
+              <div class="booking-summary">
+                <div class="summary-row"><span>Doctor</span><strong>Dr. {{ doctor.user?.full_name }}</strong></div>
+                <div class="summary-row"><span>Date</span><strong>{{ selectedDate | date:'mediumDate' }} ({{ selectedDayName }})</strong></div>
+                <div class="summary-row"><span>Time</span><strong>{{ selectedSlot }}</strong></div>
+                <div class="summary-row"><span>Fee</span><strong class="fee">${{ doctor.consultation_fee }}</strong></div>
+              </div>
+
+              <div class="field" style="margin-top: 1rem;">
+                <label>Reason for Visit <span class="optional">(optional)</span></label>
+                <textarea [(ngModel)]="bookingReason" rows="3" placeholder="Brief description of your concern…" class="form-textarea"></textarea>
+              </div>
+
+              <button class="btn-confirm" 
+                      [disabled]="bookingLoading"
+                      (click)="confirmBooking()">
+                @if (bookingLoading) {
+                  <span class="spinner"></span> Booking…
+                } @else {
+                  ✓ Confirm Appointment
+                }
+              </button>
+            </div>
+          }
         </div>
       }
     </div>
